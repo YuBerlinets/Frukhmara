@@ -1,5 +1,6 @@
-package ua.berlinets.file_manager;
+package ua.berlinets.file_manager.directory;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.Data;
 import ua.berlinets.file_manager.entity.User;
 
@@ -11,7 +12,11 @@ import java.util.*;
 @Data
 public class Directory {
     private User user;
-    private String path = "D:/FileManager/";
+    private String path = Dotenv.configure()
+            .directory("src/main/resources")
+            .filename(".env")
+            .load().get("FILE_STORAGE_PATH");
+
     private List<File> files;
 
     public Directory(User user) {
@@ -27,8 +32,6 @@ public class Directory {
             fileInformation.put("path", file.getPath());
             fileInformation.put("isFile", file.isFile());
             fileInformation.put("isDirectory", file.isDirectory());
-
-
             fileInformation.put("size", getFileSize(file.length()));
             DateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
             fileInformation.put("lastModified", sdf.format(file.lastModified()));
@@ -52,4 +55,12 @@ public class Directory {
         }
         return fileSize;
     }
+
+    public void createDirectoryForUser() {
+        File file = new File(path);
+        if (!file.exists()) {
+            file.mkdir();
+        }
+    }
+
 }

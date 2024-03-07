@@ -23,13 +23,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        System.out.println(Role.USER.name());
+        //TODO: fix roles and authorities
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         authorizeHttpRequests -> authorizeHttpRequests
                                 .requestMatchers(HttpMethod.GET, "/api/files", "/api/files/**")
-                                .hasAnyAuthority(Role.USER.name())
+//                                .hasAnyAuthority(Role.USER.name())
+//                                .hasAnyRole(Role.ADMIN.name())
+                                .hasAnyAuthority(Role.ADMIN.name())
                                 .requestMatchers("/api/user", "/api/user/**").permitAll()
                                 .requestMatchers("/", "/error").permitAll()
                                 .anyRequest()
