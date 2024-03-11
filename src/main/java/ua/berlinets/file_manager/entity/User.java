@@ -39,6 +39,10 @@ public class User implements UserDetails {
 
     private Collection<Role> roles;
 
+    public void addRoles(List<Role> roles) {
+        this.roles.addAll(roles);
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
