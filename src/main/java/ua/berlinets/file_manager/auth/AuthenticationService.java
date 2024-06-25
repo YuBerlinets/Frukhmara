@@ -7,16 +7,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ua.berlinets.file_manager.config.JwtService;
 import ua.berlinets.file_manager.directory.DirectoryManager;
-import ua.berlinets.file_manager.entity.User;
+import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.enums.Role;
-import ua.berlinets.file_manager.repository.UserRepository;
+import ua.berlinets.file_manager.repositories.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -28,9 +29,16 @@ public class AuthenticationService {
                         request.getPassword()
                 )
         );
-        var user = userRepository.findByUsername(request.getUsername())
+        var user = userService.getUser(request.getUsername())
                 .orElseThrow();
+
+        if (!user.isAccountIsConfirmed())
+            return AuthenticationResponse.builder()
+                    .message("Account is not confirmed")
+                    .build();
+
         var jwtToken = jwtService.generateToken(user);
+
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .message("User has been successfully authenticated")
@@ -38,7 +46,7 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse register(RegisterRequest request) {
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+        if (userService.getUser(request.getUsername()).isPresent()) {
             return AuthenticationResponse.builder()
                     .message("User with such username already exists")
                     .build();
@@ -49,9 +57,10 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .accountIsConfirmed(false)
                 .role(Role.USER)
+                .registrationDate(LocalDateTime.now())
                 .roles(List.of(Role.ADMIN, Role.USER))
                 .build();
-        userRepository.save(user);
+        userService.saveUser(user);
         var jwtToken = jwtService.generateToken(user);
         if (jwtToken != null) {
             DirectoryManager.createDirectory(user);

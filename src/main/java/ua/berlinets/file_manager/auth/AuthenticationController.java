@@ -18,6 +18,10 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest request) {
-        return ResponseEntity.ok(authenticationService.authenticate(request));
+        AuthenticationResponse response = authenticationService.authenticate(request);
+        if (response.getToken() == null && response.getMessage().equals("Account is not confirmed")) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(response);
     }
 }

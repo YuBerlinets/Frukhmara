@@ -1,4 +1,4 @@
-package ua.berlinets.file_manager.entity;
+package ua.berlinets.file_manager.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import ua.berlinets.file_manager.enums.Role;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,7 +36,11 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(name = "account_is_confirmed")
     private boolean accountIsConfirmed;
+
+    @Column(name = "registration_date")
+    private LocalDateTime registrationDate;
 
     private Collection<Role> roles;
 
