@@ -1,9 +1,8 @@
-package ua.berlinets.file_manager.controller;
+package ua.berlinets.file_manager.controllers;
 
 
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -12,10 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import ua.berlinets.file_manager.config.JwtService;
 import ua.berlinets.file_manager.directory.Directory;
-import ua.berlinets.file_manager.entity.User;
-import ua.berlinets.file_manager.repository.UserRepository;
+import ua.berlinets.file_manager.entities.User;
+import ua.berlinets.file_manager.repositories.UserRepository;
 
 import java.util.List;
 import java.util.Map;

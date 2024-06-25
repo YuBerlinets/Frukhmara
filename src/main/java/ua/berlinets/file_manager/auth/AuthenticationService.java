@@ -9,7 +9,7 @@ import ua.berlinets.file_manager.config.JwtService;
 import ua.berlinets.file_manager.directory.DirectoryManager;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.enums.Role;
-import ua.berlinets.file_manager.repositories.UserRepository;
+import ua.berlinets.file_manager.services.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -2,7 +2,7 @@ package ua.berlinets.file_manager.directory;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.Data;
-import ua.berlinets.file_manager.entity.User;
+import ua.berlinets.file_manager.entities.User;
 
 import java.io.File;
 import java.text.DateFormat;
