@@ -1,10 +1,12 @@
 package ua.berlinets.file_manager.directory;
 
 import io.github.cdimascio.dotenv.Dotenv;
-
+import org.springframework.stereotype.Service;
+import ua.berlinets.file_manager.entities.User;
 
 import java.io.File;
 
+@Service
 public class DirectoryManager {
 
     private static final String path = Dotenv.configure()
@@ -12,24 +14,25 @@ public class DirectoryManager {
             .filename(".env")
             .load().get("FILE_STORAGE_PATH");
 
-    public static void createDirectory(ua.berlinets.file_manager.entities.User user) {
+    public static boolean createDirectory(User user) {
         File file = new File(path + user.getUsername());
-        if (!file.exists()) {
-            file.mkdirs();
-        }
+        if (!file.exists())
+            return file.mkdirs();
+        return false;
     }
 
-    public static void renameDirectory(ua.berlinets.file_manager.entities.User user) {
+    public static boolean renameDirectory(User user) {
         File file = new File(path + user.getUsername());
-        if (file.exists()) {
-            file.renameTo(new File(path + user.getName()));
-        }
+        if (file.exists())
+            return file.renameTo(new File(path + user.getName()));
+
+        return false;
     }
 
-    public static void deleteDirectory(ua.berlinets.file_manager.entities.User user) {
+    public static boolean deleteDirectory(User user) {
         File file = new File(path + user.getUsername());
-        if (file.exists()) {
-            file.delete();
-        }
+        if (file.exists())
+            return file.delete();
+        return false;
     }
 }

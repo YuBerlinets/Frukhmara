@@ -11,7 +11,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import ua.berlinets.file_manager.enums.Role;
+import ua.berlinets.file_manager.enums.RoleEnum;
 
 
 @Configuration
@@ -23,23 +23,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        //TODO: fix roles and authorities
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         authorizeHttpRequests -> authorizeHttpRequests
-                                .requestMatchers(HttpMethod.GET, "/api/files", "/api/files/**")
-//                                .hasAnyAuthority(Role.USER.name())
-//                                .hasAnyRole(Role.ADMIN.name())
-                                .hasAnyAuthority(Role.ADMIN.name())
+                                .requestMatchers(HttpMethod.GET, "/api/files", "/api/files/**").hasAnyAuthority(RoleEnum.ADMIN.name())
                                 .requestMatchers("/api/user", "/api/user/**").permitAll()
                                 .requestMatchers("/", "/error").permitAll()
                                 .anyRequest()
                                 .authenticated()
                 )
-//                .httpBasic(Customizer.withDefaults())
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .cors(Customizer.withDefaults())
 
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

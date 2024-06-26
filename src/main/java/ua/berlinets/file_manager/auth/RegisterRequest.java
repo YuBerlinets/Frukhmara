@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ua.berlinets.file_manager.enums.Role;
+import ua.berlinets.file_manager.enums.RoleEnum;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -15,5 +17,5 @@ public class RegisterRequest {
     private String name;
     private String username;
     private String password;
-    private Role role;
+    private List<RoleEnum> roles;
 }

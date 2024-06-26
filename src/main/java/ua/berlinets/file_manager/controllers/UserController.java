@@ -12,9 +12,7 @@ import ua.berlinets.file_manager.services.UserService;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -28,9 +26,9 @@ public class UserController {
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
         if (userService.getUser(username).isPresent()) {
             userService.deleteUser(username);
-            return ResponseEntity.status(HttpStatus.OK).body("User " + username + " was successfully deleted");
+            return ResponseEntity.ok("User " + username + " was successfully deleted");
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping("/admin/confirm_account/{username}")
@@ -39,14 +37,13 @@ public class UserController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
-        user.setAccountIsConfirmed(true);
-        userService.saveUser(user);
+        userService.confirmUser(user);
         return ResponseEntity.ok(user.getUsername() + " was successfully confirmed");
     }
 
     @GetMapping("/admin/not_confirmed_accounts")
-    public ResponseEntity<List<Map<String, Object>>> getAllNotConfirmedAccounts() {
-        List<Map<String, Object>> response = userService.getAllNotConfirmedAccounts();
+    public ResponseEntity<Object> getAllNotConfirmedAccounts() {
+        List<UserInformationDTO> response = userService.getAllNotConfirmedAccounts();
         if (!response.isEmpty()) {
             return ResponseEntity.ok(response);
         }
@@ -54,7 +51,7 @@ public class UserController {
     }
 
     @GetMapping("/admin/all_accounts")
-    public ResponseEntity<List<UserInformationDTO>> getAllAccounts() {
+    public ResponseEntity<Object> getAllAccounts() {
         List<UserInformationDTO> users = userService.getAllUsers();
         if (!users.isEmpty()) {
             return ResponseEntity.ok(users);
@@ -63,20 +60,24 @@ public class UserController {
     }
 
     @GetMapping("/info")
-    public ResponseEntity<Map<String, Object>> getUserInfo(@RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<Object> getUserInfo(@RequestHeader(name = "Authorization") String token) {
         String jwtToken = token.substring(7);
         String username = jwtService.extractUsername(jwtToken);
         if (username == null) {
-            return ResponseEntity.ok(Map.of("error", "Invalid token"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
         User user = userService.getUser(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-        Map<String, Object> jsonUser = new LinkedHashMap<>();
-        jsonUser.put("username", user.getUsername());
-        jsonUser.put("name", user.getName());
-        jsonUser.put("registrationDate", user.getRegistrationDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")));
-        jsonUser.put("roles", user.getRoles());
-        jsonUser.put("isConfirmed", user.isAccountIsConfirmed());
-        return ResponseEntity.ok(jsonUser);
+
+        UserInformationDTO userInformationDTO = new UserInformationDTO(
+                user.getUsername(),
+                user.getName(),
+                user.getRegistrationDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")),
+                user.getRoles(),
+                user.isAccountIsConfirmed()
+        );
+
+
+        return ResponseEntity.ok(userInformationDTO);
     }
 }

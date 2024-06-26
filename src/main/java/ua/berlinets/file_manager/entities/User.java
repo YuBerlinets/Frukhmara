@@ -1,5 +1,6 @@
 package ua.berlinets.file_manager.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +9,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ua.berlinets.file_manager.enums.Role;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,17 +32,17 @@ public class User implements UserDetails {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "role")
-    @Enumerated(EnumType.STRING)
-    private Role role;
-
     @Column(name = "account_is_confirmed")
     private boolean accountIsConfirmed;
 
     @Column(name = "registration_date")
     private LocalDateTime registrationDate;
-
-    private Collection<Role> roles;
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_role",
+            joinColumns = @JoinColumn(name = "user_username"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private List<Role> roles;
 
     public void addRoles(List<Role> roles) {
         this.roles.addAll(roles);
@@ -51,8 +51,8 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
-        for (Role role : roles) {
-            authorities.add(new SimpleGrantedAuthority(role.name()));
+        for (Role roleEnum : roles) {
+            authorities.add(new SimpleGrantedAuthority(roleEnum.getRoleName().name()));
         }
         return authorities;
     }
