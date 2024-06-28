@@ -16,7 +16,7 @@ public class UserInformationDTO {
     private String username;
     private String name;
     private String registrationDate;
-    private List<Role> roles;
+    private List<String> roles;
     private boolean accountIsConfirmed;
 
 }

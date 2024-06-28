@@ -19,4 +19,9 @@ public class Role {
     @JsonIgnore
     @ManyToMany(mappedBy = "roles", fetch = FetchType.EAGER)
     private List<User> users;
+
+    @Override
+    public String toString() {
+        return roleName.name();
+    }
 }

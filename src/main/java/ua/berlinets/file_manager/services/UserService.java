@@ -11,7 +11,6 @@ import ua.berlinets.file_manager.directory.DirectoryManager;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.repositories.UserRepository;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +20,7 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
+    private final UserMapper userMapper;
 
     public User saveUser(User user) {
         return userRepository.save(user);
@@ -38,14 +38,7 @@ public class UserService implements UserDetailsService {
         List<User> users = userRepository.findAllByAccountIsConfirmed(false);
         List<UserInformationDTO> response = new ArrayList<>();
         for (User user : users) {
-            UserInformationDTO userInfo = new UserInformationDTO(
-                    user.getUsername(),
-                    user.getName(),
-                    user.getRegistrationDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")),
-                    user.getRoles(),
-                    user.isAccountIsConfirmed()
-            );
-            response.add(userInfo);
+            response.add(userMapper.userToDTO(user));
         }
         return response;
     }
@@ -54,13 +47,7 @@ public class UserService implements UserDetailsService {
         List<User> users = userRepository.findAll();
         List<UserInformationDTO> userInformationDTOS = new ArrayList<>();
         for (User user : users) {
-            userInformationDTOS.add(
-                    new UserInformationDTO(
-                            user.getUsername(),
-                            user.getName(),
-                            user.getRegistrationDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")),
-                            user.getRoles(),
-                            user.isAccountIsConfirmed()));
+            userInformationDTOS.add(userMapper.userToDTO(user));
         }
         return userInformationDTOS;
     }
@@ -73,6 +60,9 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+    public UserInformationDTO getUserInformation(User user) {
+        return userMapper.userToDTO(user);
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

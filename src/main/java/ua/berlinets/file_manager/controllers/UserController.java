@@ -10,7 +10,6 @@ import ua.berlinets.file_manager.config.JwtService;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.services.UserService;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,14 +68,7 @@ public class UserController {
         User user = userService.getUser(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        UserInformationDTO userInformationDTO = new UserInformationDTO(
-                user.getUsername(),
-                user.getName(),
-                user.getRegistrationDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")),
-                user.getRoles(),
-                user.isAccountIsConfirmed()
-        );
-
+        UserInformationDTO userInformationDTO = userService.getUserInformation(user);
 
         return ResponseEntity.ok(userInformationDTO);
     }
