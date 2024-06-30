@@ -12,9 +12,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import ua.berlinets.file_manager.DTO.FileInformationDTO;
 import ua.berlinets.file_manager.directory.DirectoryService;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.services.UserService;
+
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -29,7 +32,7 @@ public class FileController {
     private final UserService userService;
 
 
-    @GetMapping("/info")
+    @GetMapping
     public ResponseEntity<Object> getFilesInfo(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
             User user = userService.getUser(userDetails.getUsername()).orElse(null);
@@ -41,7 +44,7 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @GetMapping("/info-by-directory/{directory}")
+    @GetMapping("/by-directory/{directory}")
     public ResponseEntity<Object> getFilesFromDirectory(@PathVariable String directory, Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
             User user = userService.getUser(userDetails.getUsername()).orElse(null);
@@ -54,20 +57,23 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @GetMapping("/file-search/{filename}")
+    @GetMapping("/search/{filename}")
     public ResponseEntity<Object> searchForFile(@PathVariable String filename, Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
             User user = userService.getUser(userDetails.getUsername()).orElse(null);
             if (user == null) {
                 return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.ok(directoryService.getFilesByName(user, filename));
+            List<FileInformationDTO> response = directoryService.getFilesByName(user, filename);
+            if (!response.isEmpty())
+                return ResponseEntity.ok(response);
+            return ResponseEntity.notFound().build();
 
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @GetMapping("/{fileName}")
+    @GetMapping("/download/{fileName}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {

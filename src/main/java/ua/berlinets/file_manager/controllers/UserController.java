@@ -24,7 +24,7 @@ public class UserController {
     private final JwtService jwtService;
     private final UserService userService;
 
-    @GetMapping("/my-information")
+    @GetMapping("/account")
     public ResponseEntity<Object> getUserInfo(@RequestHeader(name = "Authorization") String token) {
         String jwtToken = token.substring(7);
         String username = jwtService.extractUsername(jwtToken);
