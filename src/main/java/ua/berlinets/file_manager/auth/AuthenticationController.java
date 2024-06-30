@@ -1,8 +1,11 @@
 package ua.berlinets.file_manager.auth;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -17,10 +20,15 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest request) {
-        AuthenticationResponse response = authenticationService.authenticate(request);
+    public ResponseEntity<Object> login(@RequestBody AuthenticationRequest request) {
+        AuthenticationResponse response;
+        try {
+            response = authenticationService.authenticate(request);
+        } catch (AuthenticationException e) {
+            return ResponseEntity.badRequest().body(AuthenticationResponse.builder().message("Invalid username or password").build());
+        }
         if (response.getToken() == null && response.getMessage().equals("Account is not confirmed")) {
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response.getMessage());
         }
         return ResponseEntity.ok(response);
     }

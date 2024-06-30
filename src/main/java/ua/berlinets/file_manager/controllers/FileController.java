@@ -54,11 +54,24 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
+    @GetMapping("/file-search/{filename}")
+    public ResponseEntity<Object> searchForFile(@PathVariable String filename, Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+            User user = userService.getUser(userDetails.getUsername()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(directoryService.getFilesByName(user, filename));
+
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
     @GetMapping("/{fileName}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, Authentication authentication) {
 
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+
             String username = userDetails.getUsername();
 
             Resource fileResource = new FileSystemResource(path + "/" + username + "/" + fileName);

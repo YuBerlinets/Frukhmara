@@ -1,11 +1,12 @@
 package ua.berlinets.file_manager.services;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import ua.berlinets.file_manager.DTO.UpdatePasswordDTO;
 import ua.berlinets.file_manager.DTO.UserInformationDTO;
 import ua.berlinets.file_manager.directory.DirectoryManager;
 import ua.berlinets.file_manager.entities.User;
@@ -18,9 +19,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder encoder;
 
     public User saveUser(User user) {
         return userRepository.save(user);
@@ -74,5 +75,18 @@ public class UserService implements UserDetailsService {
                 user.getPassword(),
                 new ArrayList<>()
         );
+    }
+
+    public void updatePassword(String username, UpdatePasswordDTO request) {
+        User user = userRepository.findById(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        user.setPassword(encoder.encode(request.getPassword()));
+        userRepository.save(user);
+    }
+
+    public String resetPassword(User user) {
+        String newPassword = PasswordGenerator.generatePassword();
+        user.setPassword(encoder.encode(newPassword));
+        userRepository.save(user);
+        return newPassword;
     }
 }

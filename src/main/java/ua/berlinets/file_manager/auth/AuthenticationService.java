@@ -3,10 +3,10 @@ package ua.berlinets.file_manager.auth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ua.berlinets.file_manager.config.JwtService;
-import ua.berlinets.file_manager.directory.DirectoryManager;
 import ua.berlinets.file_manager.entities.Role;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.enums.RoleEnum;
@@ -26,7 +26,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public AuthenticationResponse authenticate(AuthenticationRequest request) throws AuthenticationException {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),

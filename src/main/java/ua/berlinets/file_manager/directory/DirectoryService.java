@@ -10,9 +10,12 @@ import ua.berlinets.file_manager.services.FileMapper;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -33,12 +36,26 @@ public class DirectoryService {
     }
 
     public List<FileInformationDTO> getInformation(User user, String directory) {
-        this.path += directory;
         List<File> files = List.of(Objects.requireNonNull(new File(path + user.getUsername() + "/" + directory).listFiles()));
         List<FileInformationDTO> result = new ArrayList<>();
         for (File file : files) {
             result.add(fileMapper.fileToDTO(file));
         }
+        return result;
+    }
+
+    public List<FileInformationDTO> getFilesByName(User user, String name) {
+        List<FileInformationDTO> result = new ArrayList<>();
+        String userPath = path + user.getUsername();
+        Stream<Path> matches = null;
+        try {
+            matches = Files.find(Path.of(userPath), 10, (path, basicFileAttributes) -> path.getFileName().toString().contains(name));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        matches.forEach(f -> result.add(fileMapper.fileToDTO(new File(f.toString()))));
+        matches.close();
         return result;
     }
 
@@ -51,4 +68,5 @@ public class DirectoryService {
             return false;
         }
     }
+
 }
