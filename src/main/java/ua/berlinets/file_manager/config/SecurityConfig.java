@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         authorizeHttpRequests -> authorizeHttpRequests
                                 .requestMatchers("/api/files", "/api/files/**").hasAnyAuthority(RoleEnum.USER.name())
-                                .requestMatchers(HttpMethod.POST, "/api/user/login", "/api/user/register").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/user/login", "/api/user/register", "api/user/refresh-token").permitAll()
                                 .requestMatchers("/api/user", "/api/user/**").hasAnyAuthority(RoleEnum.USER.name())
                                 .requestMatchers("/api/admin", "/api/admin/**").hasAnyAuthority(RoleEnum.ADMIN.name())
                                 .requestMatchers("/", "/error").permitAll()

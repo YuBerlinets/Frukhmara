@@ -32,4 +32,10 @@ public class AuthenticationController {
         }
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<Object> refreshToken(@RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authenticationService.refreshToken(request));
+    }
+
 }

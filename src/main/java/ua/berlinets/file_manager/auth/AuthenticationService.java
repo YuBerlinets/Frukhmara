@@ -41,10 +41,12 @@ public class AuthenticationService {
                     .message("Account is not confirmed")
                     .build();
 
-        var jwtToken = jwtService.generateToken(user);
+        var jwtToken = jwtService.generateAccessToken(user);
+        var refreshToken = user.getRefreshToken();
 
         return AuthenticationResponse.builder()
                 .token(jwtToken)
+                .refreshToken(refreshToken)
                 .message("User has been successfully authenticated")
                 .build();
     }
@@ -58,25 +60,52 @@ public class AuthenticationService {
         List<Role> roles = new ArrayList<>();
         roles.add(roleRepository.findByRoleName(RoleEnum.USER).get());
 
-        for (RoleEnum roleEnum : request.getRoles()) {
-            roleRepository.findByRoleName(roleEnum).ifPresent(roles::add);
-        }
+//        for (RoleEnum roleEnum : request.getRoles()) {
+//            roleRepository.findByRoleName(roleEnum).ifPresent(roles::add);
+//        }
 
+        var refreshToken = jwtService.generateRefreshToken();
         User user = User.builder()
                 .name(request.getName())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .accountIsConfirmed(false)
                 .registrationDate(LocalDateTime.now())
+                .refreshToken(refreshToken)
+                .refreshTokenExp(LocalDateTime.now().plusDays(7))
                 .roles(roles)
                 .build();
         userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-
+        var jwtToken = jwtService.generateAccessToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
+                .refreshToken(refreshToken)
                 .message("User has been successfully registered")
                 .build();
+    }
+
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request) {
+        var refreshToken = request.getRefreshToken();
+        var user = userRepository.findByRefreshToken(refreshToken).orElse(null);
+        if (user == null)
+            return AuthenticationResponse.builder().message("No such user").build();
+        if (LocalDateTime.now().isAfter(user.getRefreshTokenExp())) {
+            var newAccessToken = jwtService.generateAccessToken(user);
+            var newRefreshToken = jwtService.generateRefreshToken();
+            user.setRefreshToken(newRefreshToken);
+            user.setRefreshTokenExp(LocalDateTime.now().plusDays(7));
+            userRepository.save(user);
+            return AuthenticationResponse.builder()
+                    .token(newAccessToken)
+                    .refreshToken(newRefreshToken)
+                    .message("Token and refresh token have been successfully refreshed")
+                    .build();
+        }
+        return AuthenticationResponse.builder()
+                .token(jwtService.generateAccessToken(user))
+                .refreshToken(user.getRefreshToken())
+                .message("Token has been successfully refreshed").build();
+
     }
 
 }

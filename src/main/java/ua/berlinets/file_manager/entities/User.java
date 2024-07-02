@@ -37,12 +37,20 @@ public class User implements UserDetails {
 
     @Column(name = "registration_date")
     private LocalDateTime registrationDate;
+
+    @Column(name = "refresh_token")
+    private String refreshToken;
+
+    @Column(name = "refresh_token_exp")
+    private LocalDateTime refreshTokenExp;
+
     @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role",
             joinColumns = @JoinColumn(name = "user_username"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<Role> roles;
+
 
     public void addRoles(List<Role> roles) {
         this.roles.addAll(roles);
