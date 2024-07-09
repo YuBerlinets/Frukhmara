@@ -25,10 +25,10 @@ public class AuthenticationController {
         try {
             response = authenticationService.authenticate(request);
         } catch (AuthenticationException e) {
-            return ResponseEntity.badRequest().body(AuthenticationResponse.builder().message("Invalid username or password").build());
+            return ResponseEntity.status(401).body(AuthenticationResponse.builder().message("Invalid username or password").build());
         }
         if (response.getToken() == null && response.getMessage().equals("Account is not confirmed")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response.getMessage());
         }
         return ResponseEntity.ok(response);
     }

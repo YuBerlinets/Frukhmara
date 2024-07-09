@@ -94,21 +94,39 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, Authentication authentication) {
-        if (file.isEmpty()) {
+    @PostMapping("/upload-one")
+    public ResponseEntity<Object> uploadFile(@RequestParam("file") MultipartFile file, Authentication authentication) {
+        if (file.isEmpty())
             return ResponseEntity.badRequest().body("No file selected");
-        }
+
         User user = null;
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails)
             user = userService.getUser(userDetails.getUsername()).orElse(null);
-        }
-        if (user == null) {
+        if (user == null)
             return ResponseEntity.notFound().build();
-        }
 
         if (directoryService.uploadFile(user, file))
             return ResponseEntity.ok("File uploaded successfully");
+
         return ResponseEntity.badRequest().body("Error while uploading file");
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<Object> uploadFiles(@RequestParam("files") MultipartFile[] files, Authentication authentication) {
+        if (files.length == 0)
+            return ResponseEntity.badRequest().body("No files selected");
+        User user = null;
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails)
+            user = userService.getUser(userDetails.getUsername()).orElse(null);
+
+        if (user == null)
+            return ResponseEntity.notFound().build();
+
+        for (var file : files)
+            if (!directoryService.uploadFile(user, file))
+                return ResponseEntity.badRequest().body("Error while uploading file " + file.getName());
+
+        return ResponseEntity.ok("Files uploaded successfully");
     }
 }

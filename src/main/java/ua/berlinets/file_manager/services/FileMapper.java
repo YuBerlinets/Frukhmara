@@ -17,9 +17,22 @@ public class FileMapper {
                 file.getPath(),
                 file.isFile(),
                 file.isDirectory(),
-                getFileSize(file.length()),
+                file.isDirectory() ? null : getFileSize(file.length()),
+                // for directories full size
+//                file.isDirectory() ? getFileSize(folderSize(file)) : getFileSize(file.length()),
                 sdf.format(file.lastModified())
         );
+    }
+
+    private long folderSize(File directory) {
+        long length = 0;
+        for (File file : directory.listFiles()) {
+            if (file.isFile())
+                length += file.length();
+            else
+                length += folderSize(file);
+        }
+        return length;
     }
 
     private String getFileSize(long fileLength) {

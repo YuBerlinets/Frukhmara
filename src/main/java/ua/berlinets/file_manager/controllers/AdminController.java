@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ua.berlinets.file_manager.DTO.UserInformationDTO;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.services.UserService;
 
@@ -14,7 +15,7 @@ import ua.berlinets.file_manager.services.UserService;
 public class AdminController {
     private final UserService userService;
 
-    @PostMapping("/delete/{username}")
+    @DeleteMapping("/delete-account/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
         if (userService.getUser(username).isPresent()) {
             userService.deleteUser(username);
@@ -36,6 +37,15 @@ public class AdminController {
     @GetMapping("/not-confirmed-accounts")
     public ResponseEntity<Object> getAllNotConfirmedAccounts() {
         return ResponseEntity.ok(userService.getAllNotConfirmedAccounts());
+    }
+
+    @GetMapping("/account/{username}")
+    public ResponseEntity<Object> getAccount(@PathVariable String username) {
+        UserInformationDTO user = userService.getUserInformation(username);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/all-accounts")

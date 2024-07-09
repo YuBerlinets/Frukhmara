@@ -31,8 +31,12 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username);
     }
 
+    public UserInformationDTO getUserInformation(String username) {
+        return userMapper.userToDTO(userRepository.findByUsername(username).orElse(null));
+    }
+
     public void deleteUser(String username) {
-        userRepository.deleteByUsername(username);
+        userRepository.deleteById(username);
     }
 
     public List<UserInformationDTO> getAllNotConfirmedAccounts() {
