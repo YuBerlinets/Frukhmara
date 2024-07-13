@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ua.berlinets.file_manager.DTO.UpdateRolesDTO;
 import ua.berlinets.file_manager.DTO.UserInformationDTO;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.services.UserService;
@@ -63,4 +64,16 @@ public class AdminController {
         return ResponseEntity.ok(generatedPassword);
     }
 
+    @PutMapping("/update-roles/{username}")
+    public ResponseEntity<Object> updateRoles(@PathVariable String username, @RequestBody UpdateRolesDTO roles) {
+        User user = userService.getUser(username).orElse(null);
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        try {
+            userService.updateRoles(user, roles.getRoles());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+        return ResponseEntity.noContent().build();
+    }
 }

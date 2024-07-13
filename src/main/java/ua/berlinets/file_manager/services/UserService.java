@@ -9,7 +9,10 @@ import org.springframework.stereotype.Service;
 import ua.berlinets.file_manager.DTO.UpdatePasswordDTO;
 import ua.berlinets.file_manager.DTO.UserInformationDTO;
 import ua.berlinets.file_manager.directory.DirectoryManager;
+import ua.berlinets.file_manager.entities.Role;
 import ua.berlinets.file_manager.entities.User;
+import ua.berlinets.file_manager.enums.RoleEnum;
+import ua.berlinets.file_manager.repositories.RoleRepository;
 import ua.berlinets.file_manager.repositories.UserRepository;
 
 import java.util.ArrayList;
@@ -22,6 +25,7 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder encoder;
+    private final RoleRepository roleRepository;
 
     public User saveUser(User user) {
         return userRepository.save(user);
@@ -36,7 +40,10 @@ public class UserService implements UserDetailsService {
     }
 
     public void deleteUser(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         userRepository.deleteById(username);
+
+        DirectoryManager.deleteDirectory(user);
     }
 
     public List<UserInformationDTO> getAllNotConfirmedAccounts() {
@@ -92,5 +99,17 @@ public class UserService implements UserDetailsService {
         user.setPassword(encoder.encode(newPassword));
         userRepository.save(user);
         return newPassword;
+    }
+
+    public void updateRoles(User user, List<RoleEnum> roles) {
+        List<Role> foundRoles = new ArrayList<>();
+        for (RoleEnum role : roles) {
+            Role foundRole = roleRepository.findByRoleName(role)
+                    .orElseThrow(() -> new RuntimeException("Role not found"));
+            foundRoles.add(foundRole);
+        }
+
+        user.setRoles(foundRoles);
+        userRepository.save(user);
     }
 }

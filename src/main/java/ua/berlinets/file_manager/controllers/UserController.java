@@ -13,9 +13,6 @@ import ua.berlinets.file_manager.config.JwtService;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.services.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/user")
