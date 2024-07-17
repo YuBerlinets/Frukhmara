@@ -1,4 +1,11 @@
-FROM ubuntu:latest
-LABEL authors="uberl"
+FROM openjdk:17-jdk-slim
 
-ENTRYPOINT ["top", "-b"]
+WORKDIR ./
+
+COPY .mvn/ .mvn
+COPY mvnw pom.xml ./
+RUN ./mvnw dependency:go-offline
+
+COPY src ./src
+
+CMD ["./mvnw", "spring-boot:run"]

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ua.berlinets.file_manager.DTO.UpdateRolesDTO;
 import ua.berlinets.file_manager.DTO.UserInformationDTO;
 import ua.berlinets.file_manager.entities.User;
+import ua.berlinets.file_manager.services.RoleService;
 import ua.berlinets.file_manager.services.UserService;
 
 @RestController
@@ -15,6 +16,7 @@ import ua.berlinets.file_manager.services.UserService;
 @RequiredArgsConstructor
 public class AdminController {
     private final UserService userService;
+    private final RoleService roleService;
 
     @DeleteMapping("/delete-account/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
@@ -75,5 +77,9 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/roles")
+    public ResponseEntity<Object> getAllRoles() {
+        return ResponseEntity.ok(roleService.findAll());
     }
 }

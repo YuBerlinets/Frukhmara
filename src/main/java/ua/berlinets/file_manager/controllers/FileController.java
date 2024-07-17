@@ -33,29 +33,35 @@ public class FileController {
 
 
     @GetMapping
-    public ResponseEntity<Object> getFilesInfo(Authentication authentication) {
+    public ResponseEntity<Object> getFilesInfo(@RequestParam(required = false) String path, Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
             User user = userService.getUser(userDetails.getUsername()).orElse(null);
             if (user == null) {
                 return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.ok(directoryService.getInformation(user));
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
-
-    @GetMapping("/by-directory/{directory}")
-    public ResponseEntity<Object> getFilesFromDirectory(@PathVariable String directory, Authentication authentication) {
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
-            User user = userService.getUser(userDetails.getUsername()).orElse(null);
-            if (user == null) {
-                return ResponseEntity.notFound().build();
+            try {
+                if (path != null)
+                    return ResponseEntity.ok(directoryService.getInformation(user, path));
+                return ResponseEntity.ok(directoryService.getInformation(user));
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("Error while getting files info: " + e.getMessage());
             }
-            return ResponseEntity.ok(directoryService.getInformation(user, directory));
-
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+
+//    @GetMapping("/by-directory/{directory}")
+//    public ResponseEntity<Object> getFilesFromDirectory(@PathVariable String directory, Authentication authentication) {
+//        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+//            User user = userService.getUser(userDetails.getUsername()).orElse(null);
+//            if (user == null) {
+//                return ResponseEntity.notFound().build();
+//            }
+//            return ResponseEntity.ok(directoryService.getInformation(user, directory));
+//
+//        }
+//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//    }
 
     @GetMapping("/search/{filename}")
     public ResponseEntity<Object> searchForFile(@PathVariable String filename, Authentication authentication) {
@@ -73,14 +79,15 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @GetMapping("/download/{fileName}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, Authentication authentication) {
+    @GetMapping("/download")
+    public ResponseEntity<Resource> downloadFile(@RequestParam String filename, Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
 
             String username = userDetails.getUsername();
 
-            Resource fileResource = new FileSystemResource(path + "/" + username + "/" + fileName);
+//            Resource fileResource = new FileSystemResource(path + "/" + username + "/" + fileName);
+            Resource fileResource = new FileSystemResource(path + "/" + filename);
 
             if (!fileResource.exists()) {
                 return ResponseEntity.notFound().build();

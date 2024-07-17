@@ -10,11 +10,11 @@ import java.text.SimpleDateFormat;
 @Service
 public class FileMapper {
 
-    public FileInformationDTO fileToDTO(File file) {
+    public FileInformationDTO fileToDTO(File file, int pathLength) {
         DateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
         return new FileInformationDTO(
                 file.getName(),
-                file.getPath(),
+                file.getPath().substring(pathLength),
                 file.isFile(),
                 file.isDirectory(),
                 file.isDirectory() ? null : getFileSize(file.length()),
