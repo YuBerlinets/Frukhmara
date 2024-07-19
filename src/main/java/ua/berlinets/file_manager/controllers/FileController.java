@@ -84,9 +84,7 @@ public class FileController {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
 
-            String username = userDetails.getUsername();
 
-//            Resource fileResource = new FileSystemResource(path + "/" + username + "/" + fileName);
             Resource fileResource = new FileSystemResource(path + "/" + filename);
 
             if (!fileResource.exists()) {

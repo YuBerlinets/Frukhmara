@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -59,14 +60,40 @@ public class DirectoryService {
         return result;
     }
 
+//    public boolean uploadFile(User user, MultipartFile file) {
+//        try {
+//            file.transferTo(new File(path + user.getUsername() + "/" + file.getOriginalFilename()));
+//            return true;
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
+
     public boolean uploadFile(User user, MultipartFile file) {
         try {
-            file.transferTo(new File(path + user.getUsername() + "/" + file.getOriginalFilename()));
+            String userPath = path + user.getUsername();
+            File userDirectory = new File(userPath);
+
+            if (!userDirectory.exists()) {
+                if (userDirectory.mkdirs()) {
+//                    System.out.println("Created directory: " + userPath);
+                } else {
+//                    System.err.println("Failed to create directory: " + userPath);
+                    return false;
+                }
+            }
+
+            File destFile = new File(userDirectory, file.getOriginalFilename());
+//            System.out.println("Saving file to: " + destFile.getAbsoluteFile());
+
+            file.transferTo(destFile);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
     }
+
 
 }
