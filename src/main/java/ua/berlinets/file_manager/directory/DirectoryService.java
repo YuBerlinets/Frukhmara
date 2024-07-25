@@ -12,8 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -29,25 +29,25 @@ public class DirectoryService {
 
     public List<FileInformationDTO> getInformation(User user) {
         List<FileInformationDTO> result = new ArrayList<>();
-        List<File> files = List.of(Objects.requireNonNull(new File(path + user.getUsername()).listFiles()));
+        List<File> files = List.of(Objects.requireNonNull(new File(path + user.getHashedUsername()).listFiles()));
         for (File file : files) {
-            result.add(fileMapper.fileToDTO(file, path.length()));
+            result.add(fileMapper.fileToDTO(file, getPathLength(user)));
         }
         return result;
     }
 
     public List<FileInformationDTO> getInformation(User user, String directory) {
-        List<File> files = List.of(Objects.requireNonNull(new File(path + user.getUsername() + "/" + directory).listFiles()));
+        List<File> files = List.of(Objects.requireNonNull(new File(path + user.getHashedUsername() + "/" + directory).listFiles()));
         List<FileInformationDTO> result = new ArrayList<>();
         for (File file : files) {
-            result.add(fileMapper.fileToDTO(file, path.length()));
+            result.add(fileMapper.fileToDTO(file, getPathLength(user)));
         }
         return result;
     }
 
     public List<FileInformationDTO> getFilesByName(User user, String name) {
         List<FileInformationDTO> result = new ArrayList<>();
-        String userPath = path + user.getUsername();
+        String userPath = path + user.getHashedUsername();
         Stream<Path> matches;
         try {
             matches = Files.find(Path.of(userPath), 10, (path, basicFileAttributes) -> path.getFileName().toString().contains(name));
@@ -55,9 +55,23 @@ public class DirectoryService {
             throw new RuntimeException(e);
         }
 
-        matches.forEach(f -> result.add(fileMapper.fileToDTO(new File(f.toString()), path.length())));
+        matches.forEach(f -> result.add(fileMapper.fileToDTO(new File(f.toString()), getPathLength(user))));
         matches.close();
         return result;
+    }
+    //TODO: optimize this method to make it faster
+    public String getUserUsedSpace(User user) {
+        Path folder = Paths.get(path + user.getHashedUsername());
+        long size = 0;
+        try {
+            size = Files.walk(folder)
+                    .filter(p -> p.toFile().isFile())
+                    .mapToLong(p -> p.toFile().length())
+                    .sum();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return fileMapper.getFileSize(size);
     }
 
 //    public boolean uploadFile(User user, MultipartFile file) {
@@ -72,7 +86,7 @@ public class DirectoryService {
 
     public boolean uploadFile(User user, MultipartFile file) {
         try {
-            String userPath = path + user.getUsername();
+            String userPath = path + user.getHashedUsername();
             File userDirectory = new File(userPath);
 
             if (!userDirectory.exists()) {
@@ -95,5 +109,7 @@ public class DirectoryService {
         }
     }
 
-
+    private int getPathLength(User user) {
+        return path.length() + user.getHashedUsername().length() + 1;
+    }
 }

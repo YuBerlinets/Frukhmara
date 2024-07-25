@@ -11,8 +11,11 @@ import ua.berlinets.file_manager.entities.Role;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.enums.RoleEnum;
 import ua.berlinets.file_manager.repositories.RoleRepository;
+import ua.berlinets.file_manager.repositories.StoragePlanRepository;
 import ua.berlinets.file_manager.repositories.UserRepository;
+import ua.berlinets.file_manager.services.SecurityHelpers;
 
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +25,7 @@ import java.util.List;
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final StoragePlanRepository storagePlanRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -44,6 +48,10 @@ public class AuthenticationService {
         var jwtToken = jwtService.generateAccessToken(user);
         var refreshToken = user.getRefreshToken();
 
+        user.setRefreshToken(refreshToken);
+        user.setRefreshTokenExp(LocalDateTime.now().plusDays(7));
+        userRepository.save(user);
+
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .refreshToken(refreshToken)
@@ -51,7 +59,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    public AuthenticationResponse register(RegisterRequest request) {
+    public AuthenticationResponse register(RegisterRequest request) throws NoSuchAlgorithmException {
         if (userRepository.findById(request.getUsername()).isPresent()) {
             return AuthenticationResponse.builder()
                     .message("User with such username already exists")
@@ -60,22 +68,24 @@ public class AuthenticationService {
         List<Role> roles = new ArrayList<>();
         roles.add(roleRepository.findByRoleName(RoleEnum.USER).get());
 
-//        for (RoleEnum roleEnum : request.getRoles()) {
-//            roleRepository.findByRoleName(roleEnum).ifPresent(roles::add);
-//        }
-
         var refreshToken = jwtService.generateRefreshToken();
+        var userSalt = SecurityHelpers.generateSalt();
         User user = User.builder()
                 .name(request.getName())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .userSalt(userSalt)
+                .hashedUsername(SecurityHelpers.hashUsername(request.getUsername(), userSalt))
                 .accountIsConfirmed(false)
+                .storagePlan(storagePlanRepository.findByNameContainingIgnoreCase("GUEST").orElse(null))
                 .registrationDate(LocalDateTime.now())
                 .refreshToken(refreshToken)
                 .refreshTokenExp(LocalDateTime.now().plusDays(7))
                 .roles(roles)
                 .build();
+
         userRepository.save(user);
+
         var jwtToken = jwtService.generateAccessToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
@@ -90,15 +100,10 @@ public class AuthenticationService {
         if (user == null)
             return AuthenticationResponse.builder().message("No such user").build();
         if (LocalDateTime.now().isAfter(user.getRefreshTokenExp())) {
-            var newAccessToken = jwtService.generateAccessToken(user);
-            var newRefreshToken = jwtService.generateRefreshToken();
-            user.setRefreshToken(newRefreshToken);
-            user.setRefreshTokenExp(LocalDateTime.now().plusDays(7));
-            userRepository.save(user);
             return AuthenticationResponse.builder()
-                    .token(newAccessToken)
-                    .refreshToken(newRefreshToken)
-                    .message("Token and refresh token have been successfully refreshed")
+                    .token(null)
+                    .refreshToken(null)
+                    .message("Refresh token has expired, please login again")
                     .build();
         }
         return AuthenticationResponse.builder()
@@ -107,5 +112,4 @@ public class AuthenticationService {
                 .message("Token has been successfully refreshed").build();
 
     }
-
 }

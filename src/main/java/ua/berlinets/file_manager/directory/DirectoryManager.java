@@ -15,7 +15,7 @@ public class DirectoryManager {
             .load().get("FILE_STORAGE_PATH");
 
     public static boolean createDirectory(User user) {
-        File file = new File(path + user.getUsername());
+        File file = new File(path + user.getHashedUsername());
         if (!file.exists())
             return file.mkdirs();
         return false;
@@ -30,7 +30,7 @@ public class DirectoryManager {
     }
 
     public static boolean deleteDirectory(User user) {
-        File file = new File(path + user.getUsername());
+        File file = new File(path + user.getHashedUsername());
         if (file.exists())
             return file.delete();
         return false;

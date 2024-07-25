@@ -38,11 +38,20 @@ public class User implements UserDetails {
     @Column(name = "registration_date")
     private LocalDateTime registrationDate;
 
+    @Column(name = "user_salt")
+    private byte[] userSalt;
+
+    @Column(name = "hashed_username")
+    private String hashedUsername;
+
     @Column(name = "refresh_token")
     private String refreshToken;
 
     @Column(name = "refresh_token_exp")
     private LocalDateTime refreshTokenExp;
+
+    @ManyToOne
+    private StoragePlan storagePlan;
 
     @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER)

@@ -13,6 +13,7 @@ import ua.berlinets.file_manager.entities.Role;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.enums.RoleEnum;
 import ua.berlinets.file_manager.repositories.RoleRepository;
+import ua.berlinets.file_manager.repositories.StoragePlanRepository;
 import ua.berlinets.file_manager.repositories.UserRepository;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
+    private final StoragePlanRepository storagePlanRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder encoder;
     private final RoleRepository roleRepository;

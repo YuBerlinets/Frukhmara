@@ -29,7 +29,7 @@ public class AuthenticationController {
         try {
             response = authenticationService.authenticate(request);
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body(AuthenticationResponse.builder().message("Invalid username or password").build());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(AuthenticationResponse.builder().message("Invalid username or password").build());
         }
         if (response.getToken() == null && response.getMessage().equals("Account is not confirmed")) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response.getMessage());
@@ -39,7 +39,10 @@ public class AuthenticationController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<Object> refreshToken(@RequestBody RefreshTokenRequest request) {
-        return ResponseEntity.ok(authenticationService.refreshToken(request));
+        var response = authenticationService.refreshToken(request);
+        if (response.getRefreshToken() == null)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        return ResponseEntity.ok(response);
     }
 
 }

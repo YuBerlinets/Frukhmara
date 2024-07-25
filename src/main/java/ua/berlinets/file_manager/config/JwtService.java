@@ -23,7 +23,7 @@ public class JwtService {
             .filename(".env")
             .load().get("SECRET_KEY");
 
-    private static final long ACCESS_TOKEN_VALIDITY = 1000 * 60 * 60 * 24; // 24 hours
+    private static final long ACCESS_TOKEN_VALIDITY = 1000 * 60 * 60 * 24;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
