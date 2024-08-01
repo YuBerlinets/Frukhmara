@@ -2,6 +2,8 @@ package ua.berlinets.file_manager.directory;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ua.berlinets.file_manager.DTO.FileInformationDTO;
@@ -59,6 +61,7 @@ public class DirectoryService {
         matches.close();
         return result;
     }
+
     //TODO: optimize this method to make it faster
     public String getUserUsedSpace(User user) {
         Path folder = Paths.get(path + user.getHashedUsername());
@@ -74,39 +77,40 @@ public class DirectoryService {
         return fileMapper.getFileSize(size);
     }
 
-//    public boolean uploadFile(User user, MultipartFile file) {
-//        try {
-//            file.transferTo(new File(path + user.getUsername() + "/" + file.getOriginalFilename()));
-//            return true;
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-//    }
 
     public boolean uploadFile(User user, MultipartFile file) {
         try {
             String userPath = path + user.getHashedUsername();
             File userDirectory = new File(userPath);
 
-            if (!userDirectory.exists()) {
-                if (userDirectory.mkdirs()) {
-//                    System.out.println("Created directory: " + userPath);
-                } else {
-//                    System.err.println("Failed to create directory: " + userPath);
+            if (!userDirectory.exists())
+                if (!userDirectory.mkdirs())
                     return false;
-                }
-            }
 
             File destFile = new File(userDirectory, file.getOriginalFilename());
-//            System.out.println("Saving file to: " + destFile.getAbsoluteFile());
-
             file.transferTo(destFile);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public boolean deleteFile(User user, String filename) {
+        File file = new File(path + user.getHashedUsername() + "/" + filename);
+        System.out.println(file.getAbsolutePath());
+        if (file.exists())
+            return file.delete();
+        return false;
+    }
+
+
+    public Resource downloadFile(User user, String filename) {
+        Resource fileResource = new FileSystemResource(path + user.getHashedUsername() + "/" + filename);
+        if (!fileResource.exists())
+            return null;
+
+        return fileResource;
     }
 
     private int getPathLength(User user) {

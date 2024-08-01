@@ -10,6 +10,7 @@ import ua.berlinets.file_manager.DTO.UpdatePasswordDTO;
 import ua.berlinets.file_manager.DTO.UserInformationDTO;
 import ua.berlinets.file_manager.directory.DirectoryManager;
 import ua.berlinets.file_manager.entities.Role;
+import ua.berlinets.file_manager.entities.StoragePlan;
 import ua.berlinets.file_manager.entities.User;
 import ua.berlinets.file_manager.enums.RoleEnum;
 import ua.berlinets.file_manager.repositories.RoleRepository;
@@ -38,7 +39,10 @@ public class UserService implements UserDetailsService {
     }
 
     public UserInformationDTO getUserInformation(String username) {
-        return userMapper.userToDTO(userRepository.findByUsername(username).orElse(null));
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null)
+            return null;
+        return userMapper.userToDTO(user);
     }
 
     public void deleteUser(String username) {
@@ -112,6 +116,20 @@ public class UserService implements UserDetailsService {
         }
 
         user.setRoles(foundRoles);
+        updateStoragePlan(user);
         userRepository.save(user);
+    }
+
+    private void updateStoragePlan(User user) {
+        List<Role> userRoles = user.getRoles();
+        StoragePlan storagePlan = userRoles.stream()
+                .map(Role::getRoleName)
+                .map(roleName -> storagePlanRepository.findByNameContainingIgnoreCase(roleName.name()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Storage plan not found"));
+
+        user.setStoragePlan(storagePlan);
     }
 }

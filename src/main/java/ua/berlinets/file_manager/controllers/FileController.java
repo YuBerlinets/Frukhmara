@@ -1,9 +1,7 @@
 package ua.berlinets.file_manager.controllers;
 
 
-import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,13 +22,8 @@ import java.util.List;
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
 public class FileController {
-    private final String path = Dotenv.configure()
-            .directory("src/main/resources")
-            .filename(".env")
-            .load().get("FILE_STORAGE_PATH");
     private final DirectoryService directoryService;
     private final UserService userService;
-
 
     @GetMapping
     public ResponseEntity<Object> getFilesInfo(@RequestParam(required = false) String path, Authentication authentication) {
@@ -49,19 +42,6 @@ public class FileController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
-
-//    @GetMapping("/by-directory/{directory}")
-//    public ResponseEntity<Object> getFilesFromDirectory(@PathVariable String directory, Authentication authentication) {
-//        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
-//            User user = userService.getUser(userDetails.getUsername()).orElse(null);
-//            if (user == null) {
-//                return ResponseEntity.notFound().build();
-//            }
-//            return ResponseEntity.ok(directoryService.getInformation(user, directory));
-//
-//        }
-//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-//    }
 
     @GetMapping("/search/{filename}")
     public ResponseEntity<Object> searchForFile(@PathVariable String filename, Authentication authentication) {
@@ -83,11 +63,13 @@ public class FileController {
     public ResponseEntity<Resource> downloadFile(@RequestParam String filename, Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+            User user = userService.getUser(userDetails.getUsername()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            Resource fileResource = directoryService.downloadFile(user, filename);
 
-
-            Resource fileResource = new FileSystemResource(path + "/" + filename);
-
-            if (!fileResource.exists()) {
+            if (fileResource == null) {
                 return ResponseEntity.notFound().build();
             }
 
@@ -133,5 +115,19 @@ public class FileController {
                 return ResponseEntity.badRequest().body("Error while uploading file " + file.getName());
 
         return ResponseEntity.ok("Files uploaded successfully");
+    }
+
+    @DeleteMapping()
+    public ResponseEntity<Object> deleteFile(@RequestParam String filename, Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+            User user = userService.getUser(userDetails.getUsername()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            if (directoryService.deleteFile(user, filename))
+                return ResponseEntity.ok("File deleted successfully");
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }
