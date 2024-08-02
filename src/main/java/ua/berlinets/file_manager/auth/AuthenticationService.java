@@ -13,6 +13,7 @@ import ua.berlinets.file_manager.enums.RoleEnum;
 import ua.berlinets.file_manager.repositories.RoleRepository;
 import ua.berlinets.file_manager.repositories.StoragePlanRepository;
 import ua.berlinets.file_manager.repositories.UserRepository;
+import ua.berlinets.file_manager.services.EmailService;
 import ua.berlinets.file_manager.services.SecurityHelpers;
 
 import java.security.NoSuchAlgorithmException;
@@ -29,6 +30,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) throws AuthenticationException {
         authenticationManager.authenticate(
@@ -87,6 +89,9 @@ public class AuthenticationService {
         userRepository.save(user);
 
         var jwtToken = jwtService.generateAccessToken(user);
+
+        emailService.sendNotificationAboutNewUser(user);
+
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .refreshToken(refreshToken)

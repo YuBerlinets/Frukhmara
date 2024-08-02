@@ -1,6 +1,7 @@
 package ua.berlinets.file_manager.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import ua.berlinets.file_manager.entities.Role;
 import ua.berlinets.file_manager.entities.User;
 
 import java.util.List;
@@ -14,4 +15,6 @@ public interface UserRepository extends JpaRepository<User, String> {
     void deleteByUsername(String username);
 
     Optional<User> findByRefreshToken(String refreshToken);
+
+    List<User> findAllByRolesContains(Role role);
 }

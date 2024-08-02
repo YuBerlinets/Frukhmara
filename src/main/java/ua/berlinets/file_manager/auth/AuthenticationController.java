@@ -19,6 +19,7 @@ public class AuthenticationController {
         try {
             return ResponseEntity.ok(authenticationService.register(request));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
